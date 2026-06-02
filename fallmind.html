@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>FallMind &middot; sovereign self-trained LLM</title>
+<meta name="description" content="Simon's sovereign self-trained LLM. Train on your own prompts. Run on your own hardware. Mesh-ready." />
+<link rel="icon" href="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;rect width='32' height='32' fill='%230b0a0f'/&gt;&lt;text x='16' y='22' font-size='18' text-anchor='middle' fill='%23d4a853' font-family='serif'&gt;&#9826;&lt;/text&gt;&lt;/svg&gt;" />
+<link rel="manifest" href='data:application/manifest+json;utf8,{"name":"FallMind","short_name":"FallMind","start_url":".","display":"standalone","background_color":"#0b0a0f","theme_color":"#8b1a1a","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 fill=%22%230b0a0f%22/><text x=%2296%22 y=%22128%22 font-size=%22120%22 text-anchor=%22middle%22 fill=%22%23d4a853%22 font-family=%22serif%22>%E2%97%8A</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}' />
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ox:#8b1a1a; --brass:#b8974a; --cream:#c4bfb2; --void:#0b0a0f; --gold:#d4a853;
+  --dim:#171419; --line:#2a2530; --soft:#8a8290;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--void);color:var(--cream);font-family:"DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100%}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(184,151,74,.08), transparent 60%),
+    radial-gradient(800px 400px at 100% 100%, rgba(139,26,26,.10), transparent 70%),
+    var(--void);
+  padding:24px 16px 96px;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(rgba(196,191,178,.025) 1px, transparent 1px);background-size:3px 3px;mix-blend-mode:overlay;z-index:0}
+.wrap{max-width:1200px;margin:0 auto;position:relative;z-index:1}
+
+header{display:flex;flex-direction:column;gap:12px;padding:32px 0 24px;border-bottom:1px solid var(--line)}
+.mark{font-family:"Libre Baskerville",serif;font-size:clamp(36px,5vw,64px);letter-spacing:-.02em;line-height:1}
+.mark .sigil{color:var(--gold);margin-right:8px}
+.mark .accent{color:var(--brass);font-style:italic}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.tagline{font-family:"Libre Baskerville",serif;font-style:italic;color:var(--cream);max-width:720px;font-size:clamp(15px,1.6vw,18px);line-height:1.5}
+.crest{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.crest span{font-family:"IBM Plex Mono",monospace;font-size:11px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--cream);background:rgba(196,191,178,.03)}
+.crest .hot{border-color:var(--brass);color:var(--gold)}
+
+.grid{display:grid;gap:18px;grid-template-columns:repeat(12,1fr);margin-top:24px}
+.panel{grid-column:span 12;background:linear-gradient(180deg,rgba(184,151,74,.04),rgba(0,0,0,0) 60%),var(--dim);border:1px solid var(--line);border-radius:6px;padding:20px 22px;position:relative;overflow:hidden}
+.panel h2{font-family:"Libre Baskerville",serif;font-size:20px;letter-spacing:-.01em;color:var(--cream);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.panel h2 .badge{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);border:1px solid var(--brass);padding:2px 8px;border-radius:3px}
+.panel h3{font-family:"DM Sans",sans-serif;font-weight:500;color:var(--cream);font-size:14px;margin:14px 0 8px}
+.panel p,.panel li{font-size:14px;line-height:1.55;color:var(--cream)}
+.panel li{margin:6px 0 6px 20px}
+.col-6{grid-column:span 12}
+.col-4{grid-column:span 12}
+@media(min-width:880px){.col-6{grid-column:span 6}.col-4{grid-column:span 4}}
+
+.stat{display:flex;flex-direction:column;gap:4px;padding:10px 14px;border:1px solid var(--line);border-radius:4px;background:rgba(0,0,0,.25);min-width:120px}
+.stat .k{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.stat .v{font-family:"Libre Baskerville",serif;font-size:24px;color:var(--gold)}
+.statrow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+
+canvas{display:block;width:100%;height:auto;border:1px solid var(--line);background:#06050a;border-radius:4px}
+
+.tier{display:grid;grid-template-columns:80px 1fr 120px;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;margin-bottom:8px;background:rgba(0,0,0,.2)}
+.tier .label{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gold)}
+.tier .desc{font-size:13px;color:var(--cream)}
+.tier .status{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;text-align:right;color:var(--soft)}
+.tier.ok .status{color:#7cba62}
+.tier.gated .status{color:var(--brass)}
+
+.timeline{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.tlrow{display:grid;grid-template-columns:90px 1fr;gap:14px;padding:10px 0;border-bottom:1px dotted var(--line)}
+.tlrow:last-child{border-bottom:none}
+.tlrow .yr{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+.tlrow .text{font-size:13px;color:var(--cream);line-height:1.5}
+
+.btn{display:inline-block;background:transparent;color:var(--gold);border:1px solid var(--brass);padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;border-radius:3px;text-decoration:none}
+.btn:hover{background:rgba(184,151,74,.08)}
+.btn.primary{background:var(--ox);color:var(--cream);border-color:var(--ox)}
+.btn.primary:hover{background:#a72020}
+.btn.muted{color:var(--soft);border-color:var(--line)}
+
+.check{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-bottom:1px dotted var(--line);font-size:13px}
+.check:last-child{border-bottom:none}
+.check .box{font-family:"IBM Plex Mono",monospace;color:var(--brass);min-width:24px}
+.check.done .box{color:#7cba62}
+.check.pending .box{color:var(--soft)}
+
+.dotline{display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--cream);margin:6px 0}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--soft)}
+.dot.on{background:#7cba62}
+.dot.warn{background:var(--brass)}
+.dot.off{background:var(--ox)}
+
+footer{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--soft)}
+footer a{color:var(--brass);text-decoration:none}
+footer a:hover{color:var(--gold)}
+
+.empty{padding:18px;border:1px dashed var(--line);border-radius:4px;color:var(--soft);font-size:13px;font-style:italic;background:rgba(0,0,0,.2)}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--cream)}
+.kbd{font-family:"IBM Plex Mono",monospace;font-size:11px;background:rgba(184,151,74,.08);border:1px solid var(--brass);color:var(--gold);padding:1px 6px;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">FallMind &middot; prime 587 &middot; ring focus R4 + R6 &middot; v20 mastery seal</div>
+  <h1 class="mark"><span class="sigil">&#9826;</span>FallMind &middot; <span class="accent">sovereign self-trained LLM</span></h1>
+  <div class="tagline">Train a language model on Simon's own prompts and specs. Run it on Simon's own hardware. Plug into the estate cascade and the guild mesh. No cloud. No leash.</div>
+  <div class="crest">
+    <span class="hot">&#9826; &middot; &kappa; = 1</span>
+    <span>prime 587</span>
+    <span>rings R4 + R6</span>
+    <span>bloom [4,7,7,6,5,4,3]</span>
+    <span>fold 510510</span>
+    <span>Konomi pending</span>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- (a) Training corpus stats -->
+  <section class="panel col-6">
+    <h2>1 &middot; Training corpus <span class="badge">stage 1 &middot; export</span></h2>
+    <p>Reads <span class="mono">./training-data/*.jsonl</span> if present.</p>
+    <div class="statrow" id="corpus-stats"></div>
+    <div id="corpus-empty" class="empty" style="display:none">No corpus yet. Run <span class="kbd">python scripts/export.py</span> to walk your CC sessions and estate specs.</div>
+    <h3>What goes in</h3>
+    <ul>
+      <li>GREEN &middot; Simon's prompts from CC session logs (user role only)</li>
+      <li>GREEN &middot; .md specs, READMEs, seeds across the estate</li>
+      <li>AMBER &middot; assistant responses (locked behind <span class="mono">--include-amber</span>)</li>
+    </ul>
+  </section>
+
+  <!-- (b) Ring distribution -->
+  <section class="panel col-6">
+    <h2>2 &middot; Ring distribution <span class="badge">R0&rarr;R6</span></h2>
+    <p>Heuristic ring tag per training row. Mountain bloom is the target.</p>
+    <canvas id="rings-canvas" width="600" height="220"></canvas>
+  </section>
+
+  <!-- (c) Source breakdown -->
+  <section class="panel col-6">
+    <h2>3 &middot; Source breakdown <span class="badge">where it came from</span></h2>
+    <canvas id="sources-canvas" width="600" height="240"></canvas>
+  </section>
+
+  <!-- (d) Sovereignty timeline -->
+  <section class="panel col-6">
+    <h2>4 &middot; Sovereignty timeline <span class="badge">year 1 &rarr; year 4+</span></h2>
+    <div class="timeline">
+      <div class="tlrow"><span class="yr">Y1 &middot; now</span><span class="text">Export green corpus. Format LoRA pairs. Ship the scaffold. Wait for GPU.</span></div>
+      <div class="tlrow"><span class="yr">Y1 &middot; q3</span><span class="text">First LoRA on Llama-3.1-8B. Merge into <span class="mono">simon-mind</span>. Register in Ollama. Cascade T0 = self.</span></div>
+      <div class="tlrow"><span class="yr">Y2</span><span class="text">Continual SFT on every new estate prompt. Bloom drift monitored by R5 mirror.</span></div>
+      <div class="tlrow"><span class="yr">Y3</span><span class="text">Mesh: simon-mind + thomas-mind handshake. Bloom-routed delegation. Real WebRTC.</span></div>
+      <div class="tlrow"><span class="yr">Y4+</span><span class="text">Guild constellation. Frontier-class capability without frontier dependence. v21 never happens &mdash; runewords on v20.</span></div>
+    </div>
+  </section>
+
+  <!-- (e) Cascade tiers -->
+  <section class="panel col-6">
+    <h2>5 &middot; Cascade routing <span class="badge">T0 &rarr; T3</span></h2>
+    <div class="tier gated" id="tier-T0"><span class="label">T0</span><span class="desc">simon-mind &middot; LoRA on local box &middot; first responder</span><span class="status">awaits GPU</span></div>
+    <div class="tier gated" id="tier-T1"><span class="label">T1</span><span class="desc">Ollama Llama-3.1-8B fallback &middot; if simon-mind dips on confidence</span><span class="status">awaits GPU</span></div>
+    <div class="tier gated" id="tier-T2"><span class="label">T2</span><span class="desc">Estate cascade (FallCore proxy) &middot; mesh peers</span><span class="status">live</span></div>
+    <div class="tier gated" id="tier-T25"><span class="label">T2.5</span><span class="desc">Llama-3.1-70B-q4 &middot; local heavy lift</span><span class="status">awaits GPU</span></div>
+    <div class="tier gated" id="tier-T3"><span class="label">T3</span><span class="desc">Frontier API (Anthropic) &middot; last resort &middot; rarely needed</span><span class="status">on demand</span></div>
+  </section>
+
+  <!-- (f) Ollama detection -->
+  <section class="panel col-6">
+    <h2>6 &middot; Local model status <span class="badge">127.0.0.1:11434</span></h2>
+    <div class="dotline"><span class="dot" id="ollama-dot"></span><span id="ollama-text">checking Ollama&hellip;</span></div>
+    <div class="dotline"><span class="dot" id="simon-dot"></span><span id="simon-text">checking simon-mind&hellip;</span></div>
+    <div class="dotline"><span class="dot" id="big-dot"></span><span id="big-text">checking llama3.1:70b&hellip;</span></div>
+    <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px">
+      <button class="btn" id="recheck">re-check</button>
+      <a class="btn muted" href="https://ollama.com/download" target="_blank" rel="noopener">install ollama</a>
+    </div>
+    <p style="margin-top:12px;color:var(--soft);font-size:12px">If Ollama is offline this panel stays silent &mdash; the page still works.</p>
+  </section>
+
+  <!-- (g) Hardware checklist -->
+  <section class="panel col-6">
+    <h2>7 &middot; Hardware ready <span class="badge">stage gates</span></h2>
+    <div class="check pending"><span class="box">[ ]</span><span>RTX 4090 (24&nbsp;GB) or equivalent &mdash; LoRA SFT on Llama-3.1-8B</span></div>
+    <div class="check pending"><span class="box">[ ]</span><span>200&nbsp;GB free SSD &mdash; base model + 70B + checkpoints</span></div>
+    <div class="check pending"><span class="box">[ ]</span><span>CUDA 12.1+ &middot; <span class="mono">unsloth[colab-new]</span> installed</span></div>
+    <div class="check pending"><span class="box">[ ]</span><span>HuggingFace token &middot; gated Llama access</span></div>
+    <div class="check pending"><span class="box">[ ]</span><span>Ed25519 key sourced &middot; mint Konomi cert &middot; (skipped now &middot; v2.1 audit note)</span></div>
+    <div class="check done"><span class="box">[x]</span><span>Estate registry entry &middot; prime 587 assigned</span></div>
+    <div class="check done"><span class="box">[x]</span><span>Green-rule export script &middot; <span class="mono">scripts/export.py</span></span></div>
+    <div class="check done"><span class="box">[x]</span><span>Mesh router scaffold &middot; <span class="mono">mesh/router.js</span></span></div>
+  </section>
+
+  <!-- (h) Mesh status -->
+  <section class="panel col-6">
+    <h2>8 &middot; Guild mesh <span class="badge">fall-signal</span></h2>
+    <p>Members detected via BroadcastChannel <span class="mono">fall-signal</span>. Real WebRTC plugs in once a peer answers.</p>
+    <div id="mesh-list" style="margin-top:10px"></div>
+    <p style="margin-top:12px;color:var(--soft);font-size:12px">Stub. Real handshake lands after the first LoRA is trained.</p>
+  </section>
+
+</div>
+
+<footer>
+  <div>FallMind &middot; MIT &middot; prime 587 &middot; &#9826;&middot;&kappa;=1</div>
+  <div>
+    <a href="https://github.com/sjgant80-hub/fall-registry" target="_blank" rel="noopener">fall-registry</a> &middot;
+    <a href="https://sjgant80-hub.github.io/fallcompass/" target="_blank" rel="noopener">FallCompass</a> &middot;
+    <a href="https://github.com/sjgant80-hub/si-didy-agent" target="_blank" rel="noopener">si-didy-agent</a>
+  </div>
+</footer>
+
+</div>
+
+<script>
+window.FALLMIND_PRIME = 587;
+window.FALLMIND_BLOOM = [4,7,7,6,5,4,3];
+window.FALLMIND_RINGS = ["R4","R6"];
+
+// --- fall-signal broadcast -------------------------------------------------
+let chan = null;
+try {
+  chan = new BroadcastChannel("fall-signal");
+  chan.postMessage({kind:"presence",tool:"fallmind",prime:587,rings:["R4","R6"],bloom:window.FALLMIND_BLOOM,ts:Date.now()});
+} catch(e){ /* ignore */ }
+
+// --- Konomi licence shim (sovereign tier · no gate) -----------------------
+window.Konomi = {
+  tier: "sovereign",
+  prime: 587,
+  verify: () => ({ ok:true, tier:"sovereign", note:"FallMind sovereign tier · no gate" }),
+  meter: () => ({ kcc:0, kono:0, mintPending:true }),
+};
+
+// --- Mesh members render ---------------------------------------------------
+const meshMembers = [
+  { name:"simon-mind",     member:"simon",  prime:587,    bloom:[4,7,7,6,5,4,3], tiers:"T0 T1 T2", status:"awaits LoRA" },
+  { name:"thomas-mind",    member:"thomas", prime:53,     bloom:[2,8,3,7,15,6,12], tiers:"T2 T3", status:"placeholder" },
+  { name:"estate-cascade", member:"estate", prime:510510, bloom:[3,5,5,5,5,5,8], tiers:"T2.5 T3", status:"live" },
+];
+function renderMesh(){
+  const el = document.getElementById("mesh-list");
+  el.innerHTML = meshMembers.map(m => `
+    <div class="dotline">
+      <span class="dot ${m.status==='live'?'on':(m.status==='placeholder'?'warn':'off')}"></span>
+      <span style="flex:1"><b style="color:var(--gold);font-weight:500">${m.name}</b> &middot; ${m.member} &middot; prime ${m.prime} &middot; <span style="color:var(--soft)">${m.tiers}</span></span>
+      <span style="color:var(--soft);font-size:11px">${m.status}</span>
+    </div>`).join("");
+}
+renderMesh();
+
+// --- Corpus stats ----------------------------------------------------------
+async function loadCorpus(){
+  const tryPaths = ["./training-data/simon-prompts.jsonl","./training-data/lora-ready.jsonl"];
+  let rows = [];
+  for (const p of tryPaths){
+    try {
+      const r = await fetch(p);
+      if (!r.ok) continue;
+      const txt = await r.text();
+      rows = txt.split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      if (rows.length) break;
+    } catch(e){}
+  }
+  return rows;
+}
+function pieRender(canvas, slices){
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const total = slices.reduce((s,x)=>s+x.v,0) || 1;
+  let a = -Math.PI/2;
+  const cx = 110, cy = H/2, r = Math.min(H/2-20, 90);
+  const palette = ["#8b1a1a","#b8974a","#d4a853","#7cba62","#c4bfb2","#6a5d7b","#a35a2b","#4d6677"];
+  slices.forEach((s,i)=>{
+    const ang = (s.v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,a,a+ang); ctx.closePath();
+    ctx.fillStyle = palette[i%palette.length]; ctx.fill();
+    a += ang;
+  });
+  // legend
+  ctx.font = '11px "IBM Plex Mono", monospace';
+  slices.slice(0,8).forEach((s,i)=>{
+    const y = 14 + i*22;
+    ctx.fillStyle = palette[i%palette.length];
+    ctx.fillRect(220, y-9, 12, 12);
+    ctx.fillStyle = "#c4bfb2";
+    const pct = ((s.v/total)*100).toFixed(0);
+    ctx.fillText(`${s.k}  ·  ${s.v}  ·  ${pct}%`, 240, y);
+  });
+}
+function ringsRender(canvas, counts){
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const rings = ["R0","R1","R2","R3","R4","R5","R6"];
+  const max = Math.max(1, ...rings.map(r => counts[r]||0));
+  const bw = (W - 80) / 7;
+  rings.forEach((r,i)=>{
+    const v = counts[r]||0;
+    const h = (v/max) * (H - 60);
+    const x = 50 + i*bw;
+    const y = H - 30 - h;
+    const grad = ctx.createLinearGradient(0,y,0,H-30);
+    grad.addColorStop(0,"#d4a853"); grad.addColorStop(1,"#8b1a1a");
+    ctx.fillStyle = grad;
+    ctx.fillRect(x+6, y, bw-12, h);
+    ctx.fillStyle = "#c4bfb2";
+    ctx.font = '11px "IBM Plex Mono",monospace';
+    ctx.textAlign = "center";
+    ctx.fillText(r, x + bw/2, H-12);
+    ctx.fillText(String(v), x + bw/2, y-6);
+  });
+  ctx.textAlign = "left";
+}
+
+(async function initStats(){
+  const rows = await loadCorpus();
+  const stats = document.getElementById("corpus-stats");
+  const empty = document.getElementById("corpus-empty");
+  if (!rows.length){
+    empty.style.display="block";
+    // still render empty charts
+    ringsRender(document.getElementById("rings-canvas"), {});
+    pieRender(document.getElementById("sources-canvas"), [{k:"(no data)",v:1}]);
+    return;
+  }
+  const rings = {};
+  const sources = {};
+  let bytes = 0;
+  for (const r of rows){
+    rings[r.ring] = (rings[r.ring]||0)+1;
+    const src = (r.source||"unknown").split(":")[0];
+    sources[src] = (sources[src]||0)+1;
+    bytes += (r.instruction||"").length + (r.response||r.response_seed||"").length;
+  }
+  const make = (k,v) => `<div class="stat"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  stats.innerHTML = [
+    make("rows",        rows.length.toLocaleString()),
+    make("bytes",       (bytes/1024).toFixed(0) + " KB"),
+    make("sources",     Object.keys(sources).length),
+    make("dominant ring", Object.entries(rings).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-"),
+  ].join("");
+  ringsRender(document.getElementById("rings-canvas"), rings);
+  const slices = Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({k,v}));
+  pieRender(document.getElementById("sources-canvas"), slices);
+})();
+
+// --- Ollama detection ------------------------------------------------------
+async function pingOllama(){
+  const setDot = (id,cls,txt) => {
+    document.getElementById(id+"-dot").className = "dot " + cls;
+    document.getElementById(id+"-text").textContent = txt;
+  };
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(()=>ctrl.abort(), 1500);
+    const r = await fetch("http://127.0.0.1:11434/api/tags",{signal:ctrl.signal});
+    clearTimeout(to);
+    if (!r.ok) throw new Error("status "+r.status);
+    setDot("ollama","on","Ollama up at 127.0.0.1:11434");
+    const j = await r.json();
+    const names = (j.models||[]).map(m => m.name||m.model||"").join(" ");
+    if (/simon-mind/i.test(names)){
+      setDot("simon","on","simon-mind registered &middot; T0 ready");
+      document.getElementById("tier-T0").classList.remove("gated");
+      document.getElementById("tier-T0").classList.add("ok");
+      document.getElementById("tier-T0").querySelector(".status").textContent = "ready";
+    } else {
+      setDot("simon","warn","simon-mind not registered &middot; run scripts/ollama-setup.sh");
+    }
+    if (/llama3\.?1.*70b/i.test(names)){
+      setDot("big","on","llama3.1:70b present &middot; T2.5 ready");
+      document.getElementById("tier-T25").classList.remove("gated");
+      document.getElementById("tier-T25").classList.add("ok");
+      document.getElementById("tier-T25").querySelector(".status").textContent = "ready";
+    } else {
+      setDot("big","warn","llama3.1:70b not pulled");
+    }
+  } catch(e){
+    setDot("ollama","off","Ollama not detected &middot; install + run");
+    setDot("simon","off","gated on Ollama");
+    setDot("big","off","gated on Ollama");
+  }
+}
+pingOllama();
+document.getElementById("recheck").addEventListener("click", pingOllama);
+
+// --- Service worker via Blob (PWA installability) -------------------------
+if ("serviceWorker" in navigator){
+  const sw = `self.addEventListener("install",e=>self.skipWaiting());self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));self.addEventListener("fetch",()=>{});`;
+  const blob = new Blob([sw],{type:"text/javascript"});
+  const url = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+</script>
+</body>
+</html>

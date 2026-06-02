@@ -1,0 +1,14 @@
+# FallMind · keep training data + heavy weights out of git
+training-data/
+simon-lora/
+simon-mind/
+*.safetensors
+*.bin
+*.gguf
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+Modelfile
+.DS_Store
+Thumbs.db

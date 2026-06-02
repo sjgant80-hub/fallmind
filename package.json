@@ -1,0 +1,21 @@
+{
+  "name": "fallmind",
+  "version": "0.1.0",
+  "description": "Sovereign self-trained LLM · prime 587 · diamond·kappa=1",
+  "type": "module",
+  "main": "mesh/router.js",
+  "exports": {
+    ".": "./mesh/router.js"
+  },
+  "scripts": {
+    "check": "node --check mesh/router.js"
+  },
+  "author": "Simon Gant",
+  "license": "MIT",
+  "homepage": "https://sjgant80-hub.github.io/fallmind/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sjgant80-hub/fallmind"
+  },
+  "keywords": ["sovereign","llm","lora","unsloth","ollama","fallmind","estate","mesh"]
+}
