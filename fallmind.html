@@ -225,15 +225,13 @@ window.Konomi = {
   tier: "sovereign",
   prime: 587,
   verify: () => ({ ok:true, tier:"sovereign", note:"FallMind sovereign tier · no gate" }),
-  meter: () => ({ kcc:0, kono:0, mintPending:true }),
-};
+  meter: () => ({ kcc:0, kono:0, mintPending:true })};
 
 // --- Mesh members render ---------------------------------------------------
 const meshMembers = [
   { name:"simon-mind",     member:"simon",  prime:587,    bloom:[4,7,7,6,5,4,3], tiers:"T0 T1 T2", status:"awaits LoRA" },
   { name:"thomas-mind",    member:"thomas", prime:53,     bloom:[2,8,3,7,15,6,12], tiers:"T2 T3", status:"placeholder" },
-  { name:"estate-cascade", member:"estate", prime:510510, bloom:[3,5,5,5,5,5,8], tiers:"T2.5 T3", status:"live" },
-];
+  { name:"estate-cascade", member:"estate", prime:510510, bloom:[3,5,5,5,5,5,8], tiers:"T2.5 T3", status:"live" }];
 function renderMesh(){
   const el = document.getElementById("mesh-list");
   el.innerHTML = meshMembers.map(m => `
@@ -336,8 +334,7 @@ function ringsRender(canvas, counts){
     make("rows",        rows.length.toLocaleString()),
     make("bytes",       (bytes/1024).toFixed(0) + " KB"),
     make("sources",     Object.keys(sources).length),
-    make("dominant ring", Object.entries(rings).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-"),
-  ].join("");
+    make("dominant ring", Object.entries(rings).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-")].join("");
   ringsRender(document.getElementById("rings-canvas"), rings);
   const slices = Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({k,v}));
   pieRender(document.getElementById("sources-canvas"), slices);
