@@ -8,7 +8,8 @@
     ".": "./mesh/router.js"
   },
   "scripts": {
-    "check": "node --check mesh/router.js"
+    "check": "node --check mesh/router.js",
+    "test": "node test.mjs"
   },
   "author": "Simon Gant",
   "license": "MIT",
@@ -17,5 +18,14 @@
     "type": "git",
     "url": "https://github.com/sjgant80-hub/fallmind"
   },
-  "keywords": ["sovereign","llm","lora","unsloth","ollama","fallmind","estate","mesh"]
+  "keywords": [
+    "sovereign",
+    "llm",
+    "lora",
+    "unsloth",
+    "ollama",
+    "fallmind",
+    "estate",
+    "mesh"
+  ]
 }
